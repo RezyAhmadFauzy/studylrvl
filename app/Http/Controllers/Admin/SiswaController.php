@@ -73,7 +73,7 @@ class SiswaController extends Controller
             'role' => 'siswa',
         ]);
 
-        return redirect()->route('admin.siswa')->with('success', 'Siswa berhasil ditambahkan');
+        return redirect()->route('admin.siswa.index')->with('success', 'Siswa berhasil ditambahkan');
     }
 
     /**
@@ -117,7 +117,7 @@ class SiswaController extends Controller
             $siswa->update(['password' => Hash::make($validated['password'])]);
         }
 
-        return redirect()->route('admin.siswa')->with('success', 'Siswa berhasil diperbarui');
+        return redirect()->route('admin.siswa.index')->with('success', 'Siswa berhasil diperbarui');
     }
 
     /**
@@ -130,6 +130,6 @@ class SiswaController extends Controller
         }
 
         $siswa->delete();
-        return redirect()->route('admin.siswa')->with('success', 'Siswa berhasil dihapus');
+        return redirect()->route('admin.siswa.index')->with('success', 'Siswa berhasil dihapus');
     }
 }

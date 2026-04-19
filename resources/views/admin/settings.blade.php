@@ -10,7 +10,7 @@
             <h1 class="text-3xl font-bold text-gray-900">Pengaturan</h1>
             <p class="text-gray-600 mt-2">Kelola pengaturan aplikasi Sistem Pengaduan</p>
         </div>
-        <a href="{{ route('dashboard') }}" class="text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-2">
+        <a href="{{ route('admin.dashboard') }}" class="text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-2">
             <i class="fas fa-arrow-left"></i> Kembali ke Dashboard
         </a>
     </div>

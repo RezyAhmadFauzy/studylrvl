@@ -19,9 +19,13 @@ class AuthController extends Controller
         return view('auth.register');
     }
 
+    public function showAdminLogin()
+    {
+        return view('auth.admin-login');
+    }
+
     public function register(Request $request)
     {
-        // Validate input
         $validated = $request->validate([
             'nama' => 'required|string|min:3|max:255',
             'nis' => 'required|string|unique:users,nis|regex:/^\d+$/',
@@ -50,8 +54,7 @@ class AuthController extends Controller
             'agree.accepted' => 'Anda harus menerima syarat & ketentuan.',
         ]);
 
-        // Create new user
-        $user = User::create([
+        User::create([
             'nama' => $validated['nama'],
             'username' => $validated['username'],
             'email' => $validated['email'],
@@ -61,11 +64,7 @@ class AuthController extends Controller
             'role' => 'siswa',
         ]);
 
-        // Auto-login after registration
-        Auth::login($user);
-        $request->session()->regenerate();
-
-        return redirect()->route('student.dashboard')->with('success', 'Pendaftaran berhasil! Selamat datang, ' . $user->nama . '.');
+        return redirect()->route('login')->with('success', 'Akun berhasil dibuat. Silakan login dengan username dan password Anda.');
     }
 
     public function login(Request $request)
@@ -77,21 +76,37 @@ class AuthController extends Controller
 
         $user = User::where('username', $credentials['username'])->first();
 
-        if (!$user || !Hash::check($credentials['password'], $user->password)) {
+        if (! $user || $user->role !== 'siswa' || ! Hash::check($credentials['password'], $user->password)) {
             return back()->withErrors([
-                'username' => 'Username atau password salah.',
+                'username' => 'Username atau password salah. Jika Anda administrator, gunakan halaman login admin.',
             ])->onlyInput('username');
         }
 
         Auth::login($user);
         $request->session()->regenerate();
 
-        // Redirect based on role
-        if ($user->role === 'admin') {
-            return redirect()->route('dashboard');
-        } else {
-            return redirect()->route('student.dashboard');
+        return redirect()->route('dashboard');
+    }
+
+    public function loginAdmin(Request $request)
+    {
+        $credentials = $request->validate([
+            'username' => 'required|string',
+            'password' => 'required|string',
+        ]);
+
+        $user = User::where('username', $credentials['username'])->first();
+
+        if (! $user || $user->role !== 'admin' || ! Hash::check($credentials['password'], $user->password)) {
+            return back()->withErrors([
+                'username' => 'Username atau password admin salah.',
+            ])->onlyInput('username');
         }
+
+        Auth::login($user);
+        $request->session()->regenerate();
+
+        return redirect()->route('admin.dashboard');
     }
 
     public function logout(Request $request)
