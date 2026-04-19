@@ -134,23 +134,68 @@
 <script>
     function viewDetail(id) {
         document.getElementById('detailModal').classList.remove('hidden');
-        // Here you would load the detail via AJAX
-        document.getElementById('detailContent').innerHTML = `
-            <div class="space-y-4">
-                <div>
-                    <label class="text-sm text-gray-600 font-semibold">Judul Pengaduan</label>
-                    <p class="text-gray-900 font-semibold">Ruang Kelas Kurang Nyaman</p>
-                </div>
-                <div>
-                    <label class="text-sm text-gray-600 font-semibold">Isi Laporan</label>
-                    <p class="text-gray-700">Ruang kelas X-A terlalu panas dan sirkulasi udaranya kurang baik. Perlu ditambahkan AC atau kipas angin yang lebih kuat.</p>
-                </div>
-                <div>
-                    <label class="text-sm text-gray-600 font-semibold">Dari</label>
-                    <p class="text-gray-900">Budi Santoso (10 Januari 2026)</p>
-                </div>
-            </div>
-        `;
+        
+        // Fetch pengaduan detail from server
+        fetch(`/api/pengaduan/${id}`)
+            .then(response => response.json())
+            .then(data => {
+                const pengaduan = data.pengaduan;
+                const fotoHtml = pengaduan.foto ? `
+                    <div>
+                        <label class="text-sm text-gray-600 font-semibold">Foto Lampiran</label>
+                        <div class="mt-2">
+                            <img src="/uploads/pengaduan/${pengaduan.foto}" alt="Foto" class="max-w-xs rounded-lg">
+                        </div>
+                    </div>
+                ` : '';
+
+                document.getElementById('detailContent').innerHTML = `
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-sm text-gray-600 font-semibold">ID Pengaduan</label>
+                            <p class="text-gray-900 font-monospace">#${String(pengaduan.id).padStart(5, '0')}</p>
+                        </div>
+                        <div>
+                            <label class="text-sm text-gray-600 font-semibold">Judul Pengaduan</label>
+                            <p class="text-gray-900 font-semibold">${pengaduan.judul}</p>
+                        </div>
+                        <div>
+                            <label class="text-sm text-gray-600 font-semibold">Isi Laporan</label>
+                            <p class="text-gray-700">${pengaduan.isi_laporan}</p>
+                        </div>
+                        <div>
+                            <label class="text-sm text-gray-600 font-semibold">Dari Siswa</label>
+                            <p class="text-gray-900"><strong>${pengaduan.user.nama}</strong> (${pengaduan.user.username})</p>
+                            <p class="text-sm text-gray-600">NIS: ${pengaduan.user.nis} - Kelas: ${pengaduan.user.kelas}</p>
+                        </div>
+                        <div>
+                            <label class="text-sm text-gray-600 font-semibold">Email Siswa</label>
+                            <p class="text-gray-900">${pengaduan.user.email}</p>
+                        </div>
+                        <div>
+                            <label class="text-sm text-gray-600 font-semibold">Tanggal Laporan</label>
+                            <p class="text-gray-900">${new Date(pengaduan.tanggal_lapor).toLocaleString('id-ID')}</p>
+                        </div>
+                        <div>
+                            <label class="text-sm text-gray-600 font-semibold">Status</label>
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-800 mt-1">
+                                <span class="w-2 h-2 bg-red-800 rounded-full mr-2"></span>
+                                ${pengaduan.status.charAt(0).toUpperCase() + pengaduan.status.slice(1)}
+                            </span>
+                        </div>
+                        ${fotoHtml}
+                    </div>
+                `;
+            })
+            .catch(error => {
+                document.getElementById('detailContent').innerHTML = `
+                    <div class="text-center text-red-600">
+                        <i class="fas fa-exclamation-circle text-2xl mb-2"></i>
+                        <p>Gagal memuat detail pengaduan</p>
+                    </div>
+                `;
+                console.error('Error:', error);
+            });
     }
 
     function closeDetailModal() {

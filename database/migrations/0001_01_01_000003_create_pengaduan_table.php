@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::create('pengaduan', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('id_user')->constrained('users')->onDelete('cascade');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->string('judul');
             $table->text('isi_laporan');
             $table->string('foto')->nullable();
-            $table->string('status');
+            $table->enum('status', ['pending', 'diproses', 'selesai'])->default('pending');
             $table->timestamp('tanggal_lapor');
             $table->timestamps();
         });

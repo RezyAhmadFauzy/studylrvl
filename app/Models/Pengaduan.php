@@ -12,7 +12,7 @@ class Pengaduan extends Model
     protected $table = 'pengaduan';
 
     protected $fillable = [
-        'id_user',
+        'user_id',
         'judul',
         'isi_laporan',
         'foto',
@@ -31,7 +31,7 @@ class Pengaduan extends Model
      */
     public function user()
     {
-        return $this->belongsTo(User::class, 'id_user');
+        return $this->belongsTo(User::class);
     }
 
     /**
@@ -39,7 +39,7 @@ class Pengaduan extends Model
      */
     public function scopeByUser($query, $userId)
     {
-        return $query->where('id_user', $userId);
+        return $query->where('user_id', $userId);
     }
 
     /**

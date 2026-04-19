@@ -78,7 +78,7 @@ class PengaduanController extends Controller
             $validated['foto'] = $filename;
         }
 
-        $validated['id_user'] = Auth::id();
+        $validated['user_id'] = Auth::id();
         $validated['status'] = 'pending';
         $validated['tanggal_lapor'] = now();
 
@@ -107,7 +107,7 @@ class PengaduanController extends Controller
     public function show(Pengaduan $pengaduan)
     {
         // Check if user owns this complaint
-        if ($pengaduan->id_user !== Auth::id()) {
+        if ($pengaduan->user_id !== Auth::id()) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -157,5 +157,30 @@ class PengaduanController extends Controller
         $pengaduan->update(['status' => $request->status]);
 
         return back()->with('success', 'Status pengaduan berhasil diperbarui');
+    }
+
+    /**
+     * Get pengaduan detail as JSON (for AJAX)
+     */
+    public function getDetail(Pengaduan $pengaduan)
+    {
+        return response()->json([
+            'pengaduan' => [
+                'id' => $pengaduan->id,
+                'judul' => $pengaduan->judul,
+                'isi_laporan' => $pengaduan->isi_laporan,
+                'foto' => $pengaduan->foto,
+                'status' => $pengaduan->status,
+                'tanggal_lapor' => $pengaduan->tanggal_lapor,
+                'user' => [
+                    'id' => $pengaduan->user->id,
+                    'nama' => $pengaduan->user->nama,
+                    'username' => $pengaduan->user->username,
+                    'email' => $pengaduan->user->email,
+                    'nis' => $pengaduan->user->nis,
+                    'kelas' => $pengaduan->user->kelas,
+                ],
+            ],
+        ]);
     }
 }

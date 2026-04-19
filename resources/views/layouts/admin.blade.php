@@ -33,8 +33,8 @@
                 </a>
 
                 <!-- Data Siswa -->
-                <a href="{{ route('admin.siswa') }}" 
-                   class="admin-nav-item {{ Route::currentRouteName() === 'admin.siswa' ? 'active' : '' }}">
+                <a href="{{ route('admin.siswa.index') }}" 
+                   class="admin-nav-item {{ str_starts_with(Route::currentRouteName(), 'admin.siswa') ? 'active' : '' }}">
                     <i class="fas fa-users w-5"></i>
                     <span>Data Siswa</span>
                 </a>

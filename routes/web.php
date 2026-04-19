@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PengaduanController;
+use App\Http\Controllers\Admin\SiswaController;
+use App\Http\Controllers\Admin\LaporanController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/login');
@@ -10,6 +12,8 @@ Route::redirect('/', '/login');
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'login']);
+    Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+    Route::post('/register', [AuthController::class, 'register']);
 });
 
 // Logout Route
@@ -36,9 +40,8 @@ Route::middleware('auth')->group(function () {
 
     // Admin Routes
     Route::prefix('/admin')->name('admin.')->group(function () {
-        Route::get('/siswa', function () {
-            return view('admin.siswa');
-        })->name('siswa');
+        // Data Siswa CRUD
+        Route::resource('siswa', SiswaController::class);
 
         Route::prefix('/pengaduan')->name('pengaduan.')->group(function () {
             Route::get('/masuk', function () {
@@ -66,9 +69,12 @@ Route::middleware('auth')->group(function () {
             })->name('selesai');
         });
 
-        Route::get('/laporan', function () {
-            return view('admin.laporan');
-        })->name('laporan');
+        // Laporan Routes with CRUD
+        Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan');
+        Route::get('/laporan/bulanan', [LaporanController::class, 'generateLaporanBulanan'])->name('laporan.bulanan');
+        Route::get('/laporan/tahunan', [LaporanController::class, 'generateLaporanTahunan'])->name('laporan.tahunan');
+        Route::get('/laporan/status', [LaporanController::class, 'generateLaporanStatus'])->name('laporan.status');
+        Route::get('/laporan/siswa', [LaporanController::class, 'generateLaporanSiswa'])->name('laporan.siswa');
 
         Route::get('/settings', function () {
             return view('admin.settings');
@@ -82,6 +88,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/pengaduan', [PengaduanController::class, 'store'])->name('store');
         Route::get('/riwayat', [PengaduanController::class, 'history'])->name('history');
         Route::get('/pengaduan/{pengaduan}', [PengaduanController::class, 'show'])->name('show');
+    });
+
+    // API Routes for AJAX
+    Route::prefix('/api')->name('api.')->group(function () {
+        Route::get('/pengaduan/{pengaduan}', [PengaduanController::class, 'getDetail'])->name('pengaduan.detail');
     });
 });
 
