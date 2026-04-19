@@ -1,299 +1,276 @@
-@extends('layouts.admin')
+﻿@extends('layouts.admin')
 
 @section('title', 'Dashboard Admin')
 
 @section('content')
-<div class="space-y-6">
-    <!-- Page Header -->
-    <div class="flex justify-between items-start">
-        <div>
-            <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
-            <p class="text-gray-600 mt-2">Selamat datang kembali, <span class="font-semibold">{{ Auth::user()->nama }}</span>! 👋</p>
-        </div>
-        <div class="text-right">
-            <p class="text-sm text-gray-600">Terakhir login:</p>
-            <p class="font-semibold text-gray-900">{{ Auth::user()->updated_at->format('d M Y, H:i') }}</p>
-        </div>
-    </div>
-
-    <!-- Statistics Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <!-- Total Siswa -->
-        <div class="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow duration-200 border-t-4 border-blue-500">
-            <div class="flex justify-between items-start">
-                <div>
-                    <p class="text-gray-600 text-sm font-medium">Total Siswa</p>
-                    <p class="text-3xl font-bold text-gray-900 mt-2">342</p>
-                    <p class="text-xs text-green-600 mt-2">
-                        <i class="fas fa-arrow-up"></i> 12% dari bulan lalu
-                    </p>
-                </div>
-                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 text-lg">
-                    <i class="fas fa-users"></i>
-                </div>
-            </div>
-        </div>
-
-        <!-- Total Pengaduan -->
-        <div class="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow duration-200 border-t-4 border-purple-500">
-            <div class="flex justify-between items-start">
-                <div>
-                    <p class="text-gray-600 text-sm font-medium">Total Pengaduan</p>
-                    <p class="text-3xl font-bold text-gray-900 mt-2">{{ $totalPengaduan }}</p>
-                    <p class="text-xs text-green-600 mt-2">
-                        <i class="fas fa-arrow-up"></i> 8% dari bulan lalu
-                    </p>
-                </div>
-                <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600 text-lg">
-                    <i class="fas fa-file-alt"></i>
-                </div>
-            </div>
-        </div>
-
-        <!-- Pengaduan Pending -->
-        <div class="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow duration-200 border-t-4 border-red-500">
-            <div class="flex justify-between items-start">
-                <div>
-                    <p class="text-gray-600 text-sm font-medium">Pengaduan Pending</p>
-                    <p class="text-3xl font-bold text-gray-900 mt-2">{{ $pending }}</p>
-                    <p class="text-xs text-red-600 mt-2">
-                        <i class="fas fa-exclamation-circle"></i> Butuh ditinjau
-                    </p>
-                </div>
-                <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center text-red-600 text-lg">
-                    <i class="fas fa-hourglass-start"></i>
-                </div>
-            </div>
-        </div>
-
-        <!-- Pengaduan Selesai -->
-        <div class="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow duration-200 border-t-4 border-green-500">
-            <div class="flex justify-between items-start">
-                <div>
-                    <p class="text-gray-600 text-sm font-medium">Pengaduan Selesai</p>
-                    <p class="text-3xl font-bold text-gray-900 mt-2">{{ $selesai }}</p>
-                    <p class="text-xs text-green-600 mt-2">
-                        <i class="fas fa-check-circle"></i> Selesai ditangani
-                    </p>
-                </div>
-                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center text-green-600 text-lg">
-                    <i class="fas fa-check-double"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Charts Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Pengaduan Per Bulan -->
-        <div class="lg:col-span-2 bg-white rounded-lg shadow-sm p-6">
-            <div class="mb-6">
-                <h2 class="text-lg font-bold text-gray-900">Pengaduan Per Bulan</h2>
-                <p class="text-sm text-gray-600">Statistik pengaduan 12 bulan terakhir</p>
-            </div>
-            <div class="relative h-80">
-                <canvas id="monthlyChart"></canvas>
-            </div>
-        </div>
-
-        <!-- Status Distribution -->
-        <div class="bg-white rounded-lg shadow-sm p-6">
-            <div class="mb-6">
-                <h2 class="text-lg font-bold text-gray-900">Distribusi Status</h2>
-                <p class="text-sm text-gray-600">Status pengaduan saat ini</p>
-            </div>
-            <div class="relative h-80">
-                <canvas id="statusChart"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <!-- Activity Chart -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="bg-white rounded-lg shadow-sm p-6">
-            <div class="mb-6">
-                <h2 class="text-lg font-bold text-gray-900">Aktivitas 7 Hari Terakhir</h2>
-                <p class="text-sm text-gray-600">Tren pengaduan harian</p>
-            </div>
-            <div class="relative h-72">
-                <canvas id="activityChart"></canvas>
-            </div>
-        </div>
-
-        <!-- Quick Stats -->
-        <div class="bg-white rounded-lg shadow-sm p-6">
-            <h2 class="text-lg font-bold text-gray-900 mb-6">Ringkasan Status</h2>
-            <div class="space-y-4">
-                <!-- Pending -->
-                <div>
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-sm font-medium text-gray-700">Menunggu Ditinjau</span>
-                        <span class="text-sm font-bold text-red-600">{{ $pending }}</span>
+<div class="row g-4 mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4">
+                <div class="d-flex flex-column flex-lg-row justify-content-between gap-4">
+                    <div>
+                        <h2 class="h4 mb-2">Halo, {{ Auth::user()->nama ?? 'Admin' }}!</h2>
+                        <p class="text-muted mb-0">Selamat datang di dashboard pengaduan siswa. Pantau statistik, status, dan laporan dari satu tampilan profesional.</p>
                     </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2">
-                        <div class="bg-red-500 h-2 rounded-full" style="width: {{ $totalPengaduan > 0 ? ($pending / $totalPengaduan * 100) : 0 }}%"></div>
-                    </div>
-                </div>
-
-                <!-- Diproses -->
-                <div>
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-sm font-medium text-gray-700">Sedang Diproses</span>
-                        <span class="text-sm font-bold text-yellow-600">{{ $diproses }}</span>
-                    </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2">
-                        <div class="bg-yellow-500 h-2 rounded-full" style="width: {{ $totalPengaduan > 0 ? ($diproses / $totalPengaduan * 100) : 0 }}%"></div>
-                    </div>
-                </div>
-
-                <!-- Selesai -->
-                <div>
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-sm font-medium text-gray-700">Selesai Ditangani</span>
-                        <span class="text-sm font-bold text-green-600">{{ $selesai }}</span>
-                    </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2">
-                        <div class="bg-green-500 h-2 rounded-full" style="width: {{ $totalPengaduan > 0 ? ($selesai / $totalPengaduan * 100) : 0 }}%"></div>
+                    <div class="text-lg-end">
+                        <span class="d-block text-muted small">Terakhir login</span>
+                        <span class="fw-semibold">{{ Auth::user()->updated_at->format('d M Y, H:i') }}</span>
                     </div>
                 </div>
             </div>
-
-            <div class="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-100">
-                <p class="text-sm text-blue-900">
-                    <i class="fas fa-info-circle mr-2"></i>
-                    <strong>Total Pengaduan:</strong> {{ $totalPengaduan }} laporan
-                </p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Recent Complaints Table -->
-    <div class="bg-white rounded-lg shadow-sm p-6">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-lg font-bold text-gray-900">Pengaduan Terbaru</h2>
-            <a href="{{ route('admin.pengaduan.masuk') }}" class="text-sm font-semibold text-blue-600 hover:text-blue-700">
-                Lihat Semua <i class="fas fa-arrow-right ml-1"></i>
-            </a>
-        </div>
-
-        <div class="overflow-x-auto">
-            <table class="w-full">
-                <thead>
-                    <tr class="border-b border-gray-200">
-                        <th class="text-left py-3 px-4 font-semibold text-gray-900 text-sm">ID</th>
-                        <th class="text-left py-3 px-4 font-semibold text-gray-900 text-sm">Siswa</th>
-                        <th class="text-left py-3 px-4 font-semibold text-gray-900 text-sm">Judul Pengaduan</th>
-                        <th class="text-left py-3 px-4 font-semibold text-gray-900 text-sm">Tanggal</th>
-                        <th class="text-left py-3 px-4 font-semibold text-gray-900 text-sm">Status</th>
-                        <th class="text-center py-3 px-4 font-semibold text-gray-900 text-sm">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-200">
-                    @forelse ($recentPengaduan as $pengaduan)
-                    <tr class="hover:bg-gray-50 transition-colors">
-                        <td class="py-4 px-4">
-                            <span class="font-semibold text-gray-900">#{{ str_pad($pengaduan->id, 5, '0', STR_PAD_LEFT) }}</span>
-                        </td>
-                        <td class="py-4 px-4">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                                    {{ substr($pengaduan->user->nama ?? 'U', 0, 1) }}
-                                </div>
-                                <div>
-                                    <p class="font-semibold text-gray-900 text-sm">{{ $pengaduan->user->nama }}</p>
-                                    <p class="text-xs text-gray-500">{{ $pengaduan->user->username }}</p>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="py-4 px-4">
-                            <p class="text-gray-900 font-medium text-sm">{{ Str::limit($pengaduan->judul, 40) }}</p>
-                        </td>
-                        <td class="py-4 px-4">
-                            <p class="text-gray-600 text-sm">{{ $pengaduan->tanggal_lapor->format('d M Y') }}</p>
-                        </td>
-                        <td class="py-4 px-4">
-                            @if ($pengaduan->status === 'pending')
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-800">
-                                    <span class="w-2 h-2 bg-red-800 rounded-full mr-2"></span>
-                                    Pending
-                                </span>
-                            @elseif ($pengaduan->status === 'diproses')
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-yellow-100 text-yellow-800">
-                                    <span class="w-2 h-2 bg-yellow-800 rounded-full mr-2"></span>
-                                    Diproses
-                                </span>
-                            @else
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800">
-                                    <span class="w-2 h-2 bg-green-800 rounded-full mr-2"></span>
-                                    Selesai
-                                </span>
-                            @endif
-                        </td>
-                        <td class="py-4 px-4 text-center">
-                            <div class="flex justify-center gap-2">
-                                <a href="#" class="text-blue-600 hover:text-blue-700 text-sm font-semibold">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                                <button onclick="updateStatus({{ $pengaduan->id }}, '{{ $pengaduan->status }}')" class="text-orange-600 hover:text-orange-700 text-sm font-semibold">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="6" class="py-8 px-4 text-center text-gray-500">
-                            <i class="fas fa-inbox text-3xl mb-2 opacity-50"></i>
-                            <p class="mt-2">Tidak ada pengaduan</p>
-                        </td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
         </div>
     </div>
 </div>
 
-<!-- Modal Update Status -->
-<div id="statusModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-    <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
-        <div class="p-6 border-b border-gray-100">
-            <h3 class="text-lg font-bold text-gray-900">Update Status Pengaduan</h3>
-        </div>
-        <form action="" method="POST" id="statusForm">
-            @csrf
-            @method('POST')
-            <div class="p-6">
-                <label class="block text-sm font-semibold text-gray-900 mb-3">Pilih Status Baru</label>
-                <div class="space-y-3">
-                    <label class="flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 transition">
-                        <input type="radio" name="status" value="pending" class="w-4 h-4 text-red-600">
-                        <span class="ml-3 font-medium text-gray-900">Pending (Menunggu Ditinjau)</span>
-                    </label>
-                    <label class="flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 transition">
-                        <input type="radio" name="status" value="diproses" class="w-4 h-4 text-yellow-600">
-                        <span class="ml-3 font-medium text-gray-900">Diproses (Sedang Ditangani)</span>
-                    </label>
-                    <label class="flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 transition">
-                        <input type="radio" name="status" value="selesai" class="w-4 h-4 text-green-600">
-                        <span class="ml-3 font-medium text-gray-900">Selesai (Sudah Ditangani)</span>
-                    </label>
+<div class="row g-4 mb-4">
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-start justify-content-between">
+                    <div>
+                        <small class="text-uppercase fw-semibold text-muted">Total Siswa</small>
+                        <h3 class="mt-3 mb-0">342</h3>
+                    </div>
+                    <div class="avatar rounded-circle bg-primary bg-opacity-15 text-primary d-flex align-items-center justify-content-center" style="width: 52px; height: 52px;">
+                        <i class="bi bi-people-fill fs-4"></i>
+                    </div>
                 </div>
+                <div class="mt-3 text-success small"><i class="bi bi-arrow-up me-1"></i>12% dari bulan lalu</div>
             </div>
-            <div class="p-6 bg-gray-50 flex gap-3 justify-end border-t border-gray-100">
-                <button type="button" onclick="closeStatusModal()" class="px-4 py-2 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 transition">
-                    Batal
-                </button>
-                <button type="submit" class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition">
-                    Update Status
-                </button>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-start justify-content-between">
+                    <div>
+                        <small class="text-uppercase fw-semibold text-muted">Total Pengaduan</small>
+                        <h3 class="mt-3 mb-0">{{ $totalPengaduan }}</h3>
+                    </div>
+                    <div class="avatar rounded-circle bg-purple bg-opacity-15 text-purple d-flex align-items-center justify-content-center" style="width: 52px; height: 52px;">
+                        <i class="bi bi-journal-text fs-4"></i>
+                    </div>
+                </div>
+                <div class="mt-3 text-success small"><i class="bi bi-arrow-up me-1"></i>8% dari bulan lalu</div>
             </div>
-        </form>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-start justify-content-between">
+                    <div>
+                        <small class="text-uppercase fw-semibold text-muted">Pengaduan Pending</small>
+                        <h3 class="mt-3 mb-0">{{ $pending }}</h3>
+                    </div>
+                    <div class="avatar rounded-circle bg-danger bg-opacity-15 text-danger d-flex align-items-center justify-content-center" style="width: 52px; height: 52px;">
+                        <i class="bi bi-hourglass-split fs-4"></i>
+                    </div>
+                </div>
+                <div class="mt-3 text-danger small"><i class="bi bi-exclamation-circle me-1"></i>Butuh ditinjau</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-start justify-content-between">
+                    <div>
+                        <small class="text-uppercase fw-semibold text-muted">Pengaduan Selesai</small>
+                        <h3 class="mt-3 mb-0">{{ $selesai }}</h3>
+                    </div>
+                    <div class="avatar rounded-circle bg-success bg-opacity-15 text-success d-flex align-items-center justify-content-center" style="width: 52px; height: 52px;">
+                        <i class="bi bi-check2-circle fs-4"></i>
+                    </div>
+                </div>
+                <div class="mt-3 text-success small"><i class="bi bi-check2 me-1"></i>Selesai ditangani</div>
+            </div>
+        </div>
     </div>
 </div>
 
+<div class="row g-4 mb-4">
+    <div class="col-12 col-xl-8">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between">
+                <div>
+                    <h5 class="mb-1">Pengaduan Per Bulan</h5>
+                    <small class="text-muted">Statistik 12 bulan terakhir</small>
+                </div>
+            </div>
+            <div class="card-body p-4">
+                <canvas id="monthlyChart" height="220"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-xl-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-white border-bottom py-3">
+                <h5 class="mb-0">Distribusi Status</h5>
+            </div>
+            <div class="card-body p-4">
+                <canvas id="statusChart" height="260"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-12 col-xl-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-white border-bottom py-3">
+                <h5 class="mb-0">Aktivitas 7 Hari Terakhir</h5>
+            </div>
+            <div class="card-body p-4">
+                <canvas id="activityChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-xl-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-white border-bottom py-3">
+                <h5 class="mb-0">Ringkasan Status</h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Menunggu Ditinjau</span>
+                        <span class="fw-semibold">{{ $pending }}</span>
+                    </div>
+                    <div class="progress" style="height: 10px;">
+                        <div class="progress-bar bg-danger" role="progressbar" style="width: {{ $totalPengaduan > 0 ? ($pending / $totalPengaduan * 100) : 0 }}%;" aria-valuenow="{{ $totalPengaduan > 0 ? ($pending / $totalPengaduan * 100) : 0 }}" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Sedang Diproses</span>
+                        <span class="fw-semibold">{{ $diproses }}</span>
+                    </div>
+                    <div class="progress" style="height: 10px;">
+                        <div class="progress-bar bg-warning" role="progressbar" style="width: {{ $totalPengaduan > 0 ? ($diproses / $totalPengaduan * 100) : 0 }}%;" aria-valuenow="{{ $totalPengaduan > 0 ? ($diproses / $totalPengaduan * 100) : 0 }}" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Selesai Ditangani</span>
+                        <span class="fw-semibold">{{ $selesai }}</span>
+                    </div>
+                    <div class="progress" style="height: 10px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ $totalPengaduan > 0 ? ($selesai / $totalPengaduan * 100) : 0 }}%;" aria-valuenow="{{ $totalPengaduan > 0 ? ($selesai / $totalPengaduan * 100) : 0 }}" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+                <div class="mt-4 rounded-4 bg-primary bg-opacity-10 p-3">
+                    <div class="small text-primary"><i class="bi bi-info-circle me-1"></i>Total Pengaduan</div>
+                    <div class="fw-semibold">{{ $totalPengaduan }} laporan</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between">
+                <div>
+                    <h5 class="mb-1">Pengaduan Terbaru</h5>
+                    <small class="text-muted">Lihat daftar laporan terbaru dari siswa.</small>
+                </div>
+                <a href="{{ route('admin.pengaduan.masuk') }}" class="btn btn-sm btn-outline-primary">Lihat Semua</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Siswa</th>
+                            <th>Judul</th>
+                            <th>Tanggal</th>
+                            <th>Status</th>
+                            <th class="text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($recentPengaduan as $pengaduan)
+                            <tr>
+                                <td class="fw-semibold">#{{ str_pad($pengaduan->id, 5, '0', STR_PAD_LEFT) }}</td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="rounded-circle bg-primary bg-opacity-15 text-primary d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">{{ substr($pengaduan->user->nama ?? 'U', 0, 1) }}</div>
+                                        <div>
+                                            <div class="fw-semibold">{{ $pengaduan->user->nama }}</div>
+                                            <div class="small text-muted">{{ $pengaduan->user->username }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ Str::limit($pengaduan->judul, 40) }}</td>
+                                <td>{{ $pengaduan->tanggal_lapor->format('d M Y') }}</td>
+                                <td>
+                                    @if ($pengaduan->status === 'pending')
+                                        <span class="badge bg-danger">Pending</span>
+                                    @elseif ($pengaduan->status === 'diproses')
+                                        <span class="badge bg-warning text-dark">Diproses</span>
+                                    @else
+                                        <span class="badge bg-success">Selesai</span>
+                                    @endif
+                                </td>
+                                <td class="text-center">
+                                    <a href="#" class="btn btn-sm btn-outline-primary me-1"><i class="bi bi-eye"></i></a>
+                                    <button onclick="updateStatus({{ $pengaduan->id }}, '{{ $pengaduan->status }}')" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></button>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="text-center py-5 text-muted">
+                                    <i class="bi bi-inbox fs-1"></i>
+                                    <div class="mt-2">Tidak ada pengaduan terbaru.</div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="statusModal" tabindex="-1" aria-labelledby="statusModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 shadow">
+            <div class="modal-header border-0">
+                <h5 class="modal-title" id="statusModalLabel">Update Status Pengaduan</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="" method="POST" id="statusForm">
+                @csrf
+                @method('POST')
+                <div class="modal-body">
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="radio" name="status" id="statusPending" value="pending">
+                        <label class="form-check-label" for="statusPending">Pending (Menunggu Ditinjau)</label>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="radio" name="status" id="statusDiproses" value="diproses">
+                        <label class="form-check-label" for="statusDiproses">Diproses (Sedang Ditangani)</label>
+                    </div>
+                    <div class="form-check mb-0">
+                        <input class="form-check-input" type="radio" name="status" id="statusSelesai" value="selesai">
+                        <label class="form-check-label" for="statusSelesai">Selesai (Sudah Ditangani)</label>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary">Update Status</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@endsection
+
+@push('scripts')
 <script>
-    // Monthly Chart
     const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
     new Chart(monthlyCtx, {
         type: 'bar',
@@ -302,9 +279,9 @@
             datasets: [{
                 label: 'Pengaduan',
                 data: [8, 12, 15, 9, 18, 14, 16, 11, 13, 10, 14, 16],
-                backgroundColor: 'rgba(59, 130, 246, 0.8)',
-                borderColor: 'rgba(59, 130, 246, 1)',
-                borderRadius: 8,
+                backgroundColor: 'rgba(13, 110, 253, 0.8)',
+                borderColor: 'rgba(13, 110, 253, 1)',
+                borderRadius: 10,
                 borderSkipped: false,
             }]
         },
@@ -312,36 +289,15 @@
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: {
-                    display: false
-                }
+                legend: { display: false }
             },
             scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        stepSize: 5,
-                        color: '#6B7280'
-                    },
-                    grid: {
-                        color: '#F3F4F6',
-                        drawBorder: false
-                    }
-                },
-                x: {
-                    ticks: {
-                        color: '#6B7280'
-                    },
-                    grid: {
-                        display: false,
-                        drawBorder: false
-                    }
-                }
+                y: { beginAtZero: true, ticks: { color: '#6c757d' }, grid: { color: '#e9ecef' } },
+                x: { ticks: { color: '#6c757d' }, grid: { display: false } }
             }
         }
     });
 
-    // Status Chart
     const statusCtx = document.getElementById('statusChart').getContext('2d');
     new Chart(statusCtx, {
         type: 'doughnut',
@@ -349,41 +305,20 @@
             labels: ['Pending', 'Diproses', 'Selesai'],
             datasets: [{
                 data: [{{ $pending }}, {{ $diproses }}, {{ $selesai }}],
-                backgroundColor: [
-                    'rgba(239, 68, 68, 0.8)',
-                    'rgba(234, 179, 8, 0.8)',
-                    'rgba(34, 197, 94, 0.8)'
-                ],
-                borderColor: [
-                    'rgba(239, 68, 68, 1)',
-                    'rgba(234, 179, 8, 1)',
-                    'rgba(34, 197, 94, 1)'
-                ],
+                backgroundColor: ['rgba(220, 53, 69, 0.8)', 'rgba(255, 193, 7, 0.8)', 'rgba(25, 135, 84, 0.8)'],
+                borderColor: ['rgba(220, 53, 69, 1)', 'rgba(255, 193, 7, 1)', 'rgba(25, 135, 84, 1)'],
                 borderWidth: 2,
-                borderRadius: 4
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        usePointStyle: true,
-                        padding: 20,
-                        font: {
-                            size: 13,
-                            weight: 'bold'
-                        },
-                        color: '#374151'
-                    }
-                }
+                legend: { position: 'bottom', labels: { padding: 16, color: '#495057' } }
             }
         }
     });
 
-    // Activity Chart
     const activityCtx = document.getElementById('activityChart').getContext('2d');
     new Chart(activityCtx, {
         type: 'line',
@@ -392,79 +327,36 @@
             datasets: [{
                 label: 'Pengaduan Baru',
                 data: [12, 19, 8, 15, 10, 6, 4],
-                borderColor: 'rgba(59, 130, 246, 1)',
-                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                borderColor: 'rgba(13, 110, 253, 1)',
+                backgroundColor: 'rgba(13, 110, 253, 0.12)',
                 borderWidth: 3,
                 fill: true,
-                tension: 0.4,
+                tension: 0.35,
                 pointRadius: 5,
-                pointBackgroundColor: 'rgba(59, 130, 246, 1)',
-                pointBorderColor: '#fff',
-                pointBorderWidth: 2,
-                pointHoverRadius: 7,
+                pointBackgroundColor: 'rgba(13, 110, 253, 1)',
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: {
-                    labels: {
-                        usePointStyle: true,
-                        padding: 20,
-                        font: {
-                            size: 13,
-                            weight: 'bold'
-                        },
-                        color: '#374151'
-                    }
-                }
+                legend: { display: false }
             },
             scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        color: '#6B7280'
-                    },
-                    grid: {
-                        color: '#F3F4F6',
-                        drawBorder: false
-                    }
-                },
-                x: {
-                    ticks: {
-                        color: '#6B7280'
-                    },
-                    grid: {
-                        display: false,
-                        drawBorder: false
-                    }
-                }
+                y: { beginAtZero: true, ticks: { color: '#6c757d' }, grid: { color: '#e9ecef' } },
+                x: { ticks: { color: '#6c757d' }, grid: { display: false } }
             }
         }
     });
 
-    // Modal Functions
     function updateStatus(pengaduanId, currentStatus) {
-        const modal = document.getElementById('statusModal');
-        const form = document.getElementById('statusForm');
-        
-        form.action = `/pengaduan/${pengaduanId}/status`;
-        document.querySelector(`input[value="${currentStatus}"]`).checked = true;
-        
-        modal.classList.remove('hidden');
+        const statusForm = document.getElementById('statusForm');
+        const modal = new bootstrap.Modal(document.getElementById('statusModal'));
+        statusForm.action = `/pengaduan/${pengaduanId}/status`;
+        document.querySelectorAll('input[name="status"]').forEach((input) => {
+            input.checked = input.value === currentStatus;
+        });
+        modal.show();
     }
-
-    function closeStatusModal() {
-        document.getElementById('statusModal').classList.add('hidden');
-    }
-
-    // Close modal when clicking outside
-    document.getElementById('statusModal').addEventListener('click', (e) => {
-        if (e.target.id === 'statusModal') {
-            closeStatusModal();
-        }
-    });
 </script>
-
-@endsection
+@endpush

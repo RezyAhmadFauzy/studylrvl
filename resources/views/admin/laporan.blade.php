@@ -525,7 +525,6 @@
         }
     }
 </style>
-@endsection
         <!-- Laporan Bulanan -->
         <div class="bg-white rounded-lg shadow-sm p-6">
             <div class="flex items-center gap-4 mb-4">

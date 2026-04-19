@@ -1,277 +1,197 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Admin Dashboard') - Sistem Pengaduan</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
-<body class="bg-slate-100">
-    <div class="flex h-screen bg-gray-100">
-        <!-- Sidebar -->
-        <div id="adminSidebar" class="fixed inset-y-0 left-0 w-64 bg-gradient-to-b from-blue-900 via-blue-800 to-blue-900 text-white shadow-2xl transform transition-transform duration-300 ease-in-out md:translate-x-0 -translate-x-full z-50">
-            <!-- Logo -->
-            <div class="p-6 border-b border-blue-700 flex items-center gap-3">
-                <div class="w-10 h-10 bg-blue-400 rounded-lg flex items-center justify-center text-lg">
-                    <i class="fas fa-graduation-cap"></i>
-                </div>
-                <div>
-                    <h1 class="text-lg font-bold">TANGSEL</h1>
-                    <p class="text-xs text-blue-200">Pengaduan Siswa</p>
-                </div>
+<body class="bg-light">
+    <nav class="navbar navbar-expand-lg navbar-white bg-white border-bottom fixed-top shadow-sm">
+        <div class="container-fluid px-3 px-lg-4">
+            <button class="btn btn-outline-secondary d-lg-none me-2" id="sidebarToggle" type="button">
+                <i class="bi bi-list"></i>
+            </button>
+            <a class="navbar-brand fw-bold text-uppercase" href="{{ route('dashboard') }}">Admin Dashboard</a>
+
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <form class="d-none d-md-flex ms-4 w-100" role="search">
+                    <input class="form-control rounded-pill border-0 bg-light" type="search" placeholder="Cari pengaduan, siswa..." aria-label="Search">
+                </form>
             </div>
 
-            <!-- Navigation -->
-            <nav class="mt-6 px-4 space-y-2">
-                <!-- Dashboard -->
-                <a href="{{ route('dashboard') }}" 
-                   class="admin-nav-item {{ Route::currentRouteName() === 'dashboard' ? 'active' : '' }}">
-                    <i class="fas fa-chart-line w-5"></i>
-                    <span>Dashboard</span>
-                </a>
-
-                <!-- Data Siswa -->
-                <a href="{{ route('admin.siswa.index') }}" 
-                   class="admin-nav-item {{ str_starts_with(Route::currentRouteName(), 'admin.siswa') ? 'active' : '' }}">
-                    <i class="fas fa-users w-5"></i>
-                    <span>Data Siswa</span>
-                </a>
-
-                <!-- Pengaduan Divider -->
-                <div class="pt-4 pb-2">
-                    <p class="text-xs font-semibold text-blue-300 px-3 uppercase tracking-wider">Pengaduan</p>
+            <div class="d-flex align-items-center gap-2 gap-lg-3">
+                <button class="btn btn-light border position-relative d-none d-sm-inline-flex align-items-center shadow-sm" type="button">
+                    <i class="bi bi-bell"></i>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">3</span>
+                </button>
+                <div class="dropdown">
+                    <a class="d-flex align-items-center text-decoration-none" href="#" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2" style="width: 44px; height: 44px;">{{ substr(Auth::user()->nama ?? 'A', 0, 1) }}</div>
+                        <div class="d-none d-sm-block text-start">
+                            <div class="fw-semibold text-dark">{{ Auth::user()->nama ?? 'Admin' }}</div>
+                            <small class="text-muted">{{ Auth::user()->role ?? 'Administrator' }}</small>
+                        </div>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow">
+                        <li><a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i>Profil</a></li>
+                        <li><a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i>Pengaturan</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form action="{{ route('logout') }}" method="POST">
+                                @csrf
+                                <button type="submit" class="dropdown-item text-danger"><i class="bi bi-box-arrow-right me-2"></i>Logout</button>
+                            </form>
+                        </li>
+                    </ul>
                 </div>
+            </div>
+        </div>
+    </nav>
 
-                <!-- Pengaduan Masuk -->
-                <a href="{{ route('admin.pengaduan.masuk') }}" 
-                   class="admin-nav-item {{ Route::currentRouteName() === 'admin.pengaduan.masuk' ? 'active' : '' }}">
-                    <i class="fas fa-inbox w-5"></i>
-                    <span>Pengaduan Masuk</span>
-                    <span class="ml-auto bg-red-500 text-xs px-2 py-1 rounded-full font-semibold">{{ $pending ?? 0 }}</span>
+    <div class="d-flex">
+        <aside id="adminSidebar" class="sidebar bg-dark text-white position-fixed top-0 bottom-0 start-0 pt-5 pt-lg-4 shadow-lg">
+            <div class="px-3 pb-3 border-bottom border-secondary d-none d-lg-block text-center">
+                <a href="{{ route('dashboard') }}" class="text-white text-decoration-none">
+                    <div class="fs-4 fw-bold">TANGSEL</div>
+                    <div class="small text-secondary">Pengaduan Siswa</div>
                 </a>
-
-                <!-- Pengaduan Diproses -->
-                <a href="{{ route('admin.pengaduan.diproses') }}" 
-                   class="admin-nav-item {{ Route::currentRouteName() === 'admin.pengaduan.diproses' ? 'active' : '' }}">
-                    <i class="fas fa-spinner w-5"></i>
-                    <span>Diproses</span>
-                    <span class="ml-auto bg-yellow-500 text-xs px-2 py-1 rounded-full font-semibold text-gray-900">{{ $diproses ?? 0 }}</span>
+            </div>
+            <nav class="nav flex-column px-2 px-lg-3 pt-3">
+                <a href="{{ route('dashboard') }}" class="nav-link d-flex align-items-center justify-content-between rounded-3 mb-1 px-3 py-2 {{ Route::currentRouteName() === 'dashboard' ? 'active bg-primary' : 'text-white-75' }}">
+                    <span><i class="bi bi-speedometer2 me-2"></i>Dashboard</span>
                 </a>
-
-                <!-- Pengaduan Selesai -->
-                <a href="{{ route('admin.pengaduan.selesai') }}" 
-                   class="admin-nav-item {{ Route::currentRouteName() === 'admin.pengaduan.selesai' ? 'active' : '' }}">
-                    <i class="fas fa-check-circle w-5"></i>
-                    <span>Selesai</span>
-                    <span class="ml-auto bg-green-500 text-xs px-2 py-1 rounded-full font-semibold">{{ $selesai ?? 0 }}</span>
+                <a href="{{ route('admin.pengaduan.masuk') }}" class="nav-link d-flex align-items-center justify-content-between rounded-3 mb-1 px-3 py-2 {{ Route::currentRouteName() === 'admin.pengaduan.masuk' ? 'active bg-primary' : 'text-white-75' }}">
+                    <span><i class="bi bi-inbox me-2"></i>Pengaduan Masuk</span>
+                    <span class="badge bg-danger rounded-pill">{{ $pending ?? 0 }}</span>
                 </a>
-
-                <!-- Divider -->
-                <div class="pt-4 pb-2">
-                    <p class="text-xs font-semibold text-blue-300 px-3 uppercase tracking-wider">Lainnya</p>
-                </div>
-
-                <!-- Laporan -->
-                <a href="{{ route('admin.laporan') }}" 
-                   class="admin-nav-item {{ Route::currentRouteName() === 'admin.laporan' ? 'active' : '' }}">
-                    <i class="fas fa-file-pdf w-5"></i>
-                    <span>Laporan</span>
+                <a href="{{ route('admin.pengaduan.diproses') }}" class="nav-link d-flex align-items-center justify-content-between rounded-3 mb-1 px-3 py-2 {{ Route::currentRouteName() === 'admin.pengaduan.diproses' ? 'active bg-primary' : 'text-white-75' }}">
+                    <span><i class="bi bi-arrow-repeat me-2"></i>Diproses</span>
+                    <span class="badge bg-warning text-dark rounded-pill">{{ $diproses ?? 0 }}</span>
                 </a>
-
-                <!-- Settings -->
-                <a href="{{ route('admin.settings') }}" 
-                   class="admin-nav-item {{ Route::currentRouteName() === 'admin.settings' ? 'active' : '' }}">
-                    <i class="fas fa-cog w-5"></i>
-                    <span>Pengaturan</span>
+                <a href="{{ route('admin.pengaduan.selesai') }}" class="nav-link d-flex align-items-center justify-content-between rounded-3 mb-1 px-3 py-2 {{ Route::currentRouteName() === 'admin.pengaduan.selesai' ? 'active bg-primary' : 'text-white-75' }}">
+                    <span><i class="bi bi-check-circle me-2"></i>Selesai</span>
+                    <span class="badge bg-success rounded-pill">{{ $selesai ?? 0 }}</span>
+                </a>
+                <div class="mt-4 px-3 text-uppercase text-secondary small tracking-wider">Data & Laporan</div>
+                <a href="{{ route('admin.siswa.index') }}" class="nav-link d-flex align-items-center rounded-3 mb-1 px-3 py-2 {{ str_starts_with(Route::currentRouteName(), 'admin.siswa') ? 'active bg-primary' : 'text-white-75' }}">
+                    <i class="bi bi-people me-2"></i>Data Siswa
+                </a>
+                <a href="{{ route('admin.laporan') }}" class="nav-link d-flex align-items-center rounded-3 mb-1 px-3 py-2 {{ Route::currentRouteName() === 'admin.laporan' ? 'active bg-primary' : 'text-white-75' }}">
+                    <i class="bi bi-file-earmark-text me-2"></i>Laporan
+                </a>
+                <a href="{{ route('admin.settings') }}" class="nav-link d-flex align-items-center rounded-3 mb-1 px-3 py-2 {{ Route::currentRouteName() === 'admin.settings' ? 'active bg-primary' : 'text-white-75' }}">
+                    <i class="bi bi-gear me-2"></i>Pengaturan
                 </a>
             </nav>
 
-            <!-- Logout Button at Bottom -->
-            <div class="absolute bottom-6 left-4 right-4">
-                <form action="{{ route('logout') }}" method="POST" class="w-full">
+            <div class="position-absolute bottom-0 start-0 end-0 p-3">
+                <form action="{{ route('logout') }}" method="POST">
                     @csrf
-                    <button type="submit" class="w-full admin-nav-item bg-red-600 hover:bg-red-700 text-center">
-                        <i class="fas fa-sign-out-alt w-5"></i>
-                        <span>Logout</span>
+                    <button type="submit" class="btn btn-danger btn-sm w-100 rounded-3">
+                        <i class="bi bi-box-arrow-right me-2"></i>Logout
                     </button>
                 </form>
             </div>
-        </div>
+        </aside>
 
-        <!-- Main Content -->
-        <div class="flex-1 flex flex-col md:ml-64">
-            <!-- Top Navbar -->
-            <header class="bg-white shadow-sm sticky top-0 z-40">
-                <div class="px-6 py-4 flex items-center justify-between">
-                    <!-- Mobile Menu Toggle -->
-                    <button id="toggleSidebarBtn" class="md:hidden text-gray-600 hover:text-gray-900">
-                        <i class="fas fa-bars text-xl"></i>
-                    </button>
-
-                    <!-- Search Bar -->
-                    <div class="hidden md:block flex-1 mx-8">
-                        <div class="relative">
-                            <input type="text" placeholder="Cari pengaduan, siswa..." 
-                                   class="w-full px-4 py-2 bg-gray-100 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
-                            <i class="fas fa-search absolute right-3 top-3 text-gray-400"></i>
-                        </div>
+        <main class="flex-fill" style="margin-left: 16rem; margin-top: 56px;">
+            <div class="container-fluid py-4">
+                @if ($errors->any())
+                    <div class="alert alert-danger rounded-4 shadow-sm">
+                        <h6 class="mb-2 fw-semibold">Ada Kesalahan</h6>
+                        <ul class="mb-0 small">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
                     </div>
+                @endif
 
-                    <!-- Right Side -->
-                    <div class="flex items-center gap-6">
-                        <!-- Notifications -->
-                        <div class="relative group">
-                            <button class="relative text-gray-600 hover:text-gray-900 transition">
-                                <i class="fas fa-bell text-xl"></i>
-                                <span class="absolute top-0 right-0 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">3</span>
-                            </button>
-                            <!-- Dropdown Menu -->
-                            <div class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                                <div class="p-4 border-b border-gray-100">
-                                    <h3 class="font-semibold text-gray-900">Notifikasi</h3>
-                                </div>
-                                <div class="divide-y max-h-80 overflow-y-auto">
-                                    <a href="#" class="p-4 hover:bg-gray-50 transition flex gap-3">
-                                        <div class="w-3 h-3 bg-red-500 rounded-full mt-2 flex-shrink-0"></div>
-                                        <div>
-                                            <p class="font-semibold text-sm text-gray-900">Pengaduan Baru</p>
-                                            <p class="text-xs text-gray-600">Pengaduan baru dari Budi Santoso</p>
-                                            <p class="text-xs text-gray-400 mt-1">5 menit yang lalu</p>
-                                        </div>
-                                    </a>
-                                    <a href="#" class="p-4 hover:bg-gray-50 transition flex gap-3">
-                                        <div class="w-3 h-3 bg-yellow-500 rounded-full mt-2 flex-shrink-0"></div>
-                                        <div>
-                                            <p class="font-semibold text-sm text-gray-900">Pengaduan Diproses</p>
-                                            <p class="text-xs text-gray-600">Pengaduan ID #00124 sedang diproses</p>
-                                            <p class="text-xs text-gray-400 mt-1">1 jam yang lalu</p>
-                                        </div>
-                                    </a>
-                                    <a href="#" class="p-4 hover:bg-gray-50 transition flex gap-3">
-                                        <div class="w-3 h-3 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
-                                        <div>
-                                            <p class="font-semibold text-sm text-gray-900">Pengaduan Selesai</p>
-                                            <p class="text-xs text-gray-600">Pengaduan ID #00122 telah selesai</p>
-                                            <p class="text-xs text-gray-400 mt-1">3 jam yang lalu</p>
-                                        </div>
-                                    </a>
-                                </div>
-                                <div class="p-3 text-center border-t border-gray-100">
-                                    <a href="#" class="text-xs font-semibold text-blue-600 hover:text-blue-700">Lihat Semua Notifikasi</a>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- User Profile Dropdown -->
-                        <div class="relative group">
-                            <button class="flex items-center gap-3 hover:bg-gray-100 px-3 py-2 rounded-lg transition">
-                                <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                                    {{ substr(Auth::user()->nama ?? 'A', 0, 1) }}
-                                </div>
-                                <div class="hidden md:block text-left">
-                                    <p class="font-semibold text-sm text-gray-900">{{ Auth::user()->nama ?? 'Admin' }}</p>
-                                    <p class="text-xs text-gray-500">{{ Auth::user()->role ?? 'admin' }}</p>
-                                </div>
-                                <i class="fas fa-chevron-down text-xs text-gray-600"></i>
-                            </button>
-                            <!-- User Dropdown Menu -->
-                            <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-t-lg transition">
-                                    <i class="fas fa-user-circle mr-2"></i> Profil
-                                </a>
-                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition">
-                                    <i class="fas fa-cog mr-2"></i> Pengaturan
-                                </a>
-                                <hr class="my-1">
-                                <form action="{{ route('logout') }}" method="POST">
-                                    @csrf
-                                    <button type="submit" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-b-lg transition">
-                                        <i class="fas fa-sign-out-alt mr-2"></i> Logout
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
+                @if (session('success'))
+                    <div class="alert alert-success rounded-4 shadow-sm">
+                        <div class="fw-semibold">Berhasil</div>
+                        <div>{{ session('success') }}</div>
                     </div>
-                </div>
-            </header>
+                @endif
 
-            <!-- Page Content -->
-            <main class="flex-1 overflow-auto">
-                <div class="p-6">
-                    @if ($errors->any())
-                        <div class="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
-                            <div class="flex gap-3">
-                                <i class="fas fa-exclamation-circle text-red-600 mt-1"></i>
-                                <div>
-                                    <h3 class="font-semibold text-red-800 mb-2">Ada Kesalahan</h3>
-                                    <ul class="list-disc list-inside text-sm text-red-700 space-y-1">
-                                        @foreach ($errors->all() as $error)
-                                            <li>{{ $error }}</li>
-                                        @endforeach
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    @endif
-
-                    @if (session('success'))
-                        <div class="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 flex gap-3 items-start">
-                            <i class="fas fa-check-circle text-green-600 mt-1"></i>
-                            <div>
-                                <h3 class="font-semibold text-green-800">Berhasil</h3>
-                                <p class="text-sm text-green-700">{{ session('success') }}</p>
-                            </div>
-                        </div>
-                    @endif
-
-                    @yield('content')
-                </div>
-            </main>
-        </div>
+                @yield('content')
+            </div>
+        </main>
     </div>
 
+    <div id="sidebarBackdrop" class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-none"></div>
+
     <style>
-        .admin-nav-item {
-            @apply flex items-center gap-3 px-4 py-3 text-blue-100 rounded-lg transition-all duration-200 hover:bg-blue-700 hover:text-white;
+        .sidebar {
+            width: 16rem;
+            z-index: 1050;
+            padding-top: 5.5rem;
         }
 
-        .admin-nav-item.active {
-            @apply bg-blue-600 text-white shadow-lg;
+        .sidebar .nav-link {
+            color: rgba(255,255,255,.8);
         }
 
-        .admin-nav-item i {
-            @apply flex-shrink-0;
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            color: #ffffff;
+            background: rgba(255,255,255,.08);
+        }
+
+        @media (max-width: 991.98px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+            }
+
+            main {
+                margin-left: 0 !important;
+            }
         }
     </style>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Sidebar Toggle
-        const toggleBtn = document.getElementById('toggleSidebarBtn');
         const sidebar = document.getElementById('adminSidebar');
+        const backdrop = document.getElementById('sidebarBackdrop');
+        const toggleBtn = document.getElementById('sidebarToggle');
+
+        const openSidebar = () => {
+            sidebar.classList.add('show');
+            backdrop.classList.remove('d-none');
+        };
+
+        const closeSidebar = () => {
+            sidebar.classList.remove('show');
+            backdrop.classList.add('d-none');
+        };
 
         if (toggleBtn) {
             toggleBtn.addEventListener('click', () => {
-                sidebar.classList.toggle('-translate-x-full');
+                if (sidebar.classList.contains('show')) {
+                    closeSidebar();
+                } else {
+                    openSidebar();
+                }
             });
         }
 
-        // Close sidebar when clicking outside
-        document.addEventListener('click', (e) => {
-            if (window.innerWidth < 768) {
-                if (sidebar && !sidebar.contains(e.target) && !toggleBtn.contains(e.target)) {
-                    sidebar.classList.add('-translate-x-full');
-                }
-            }
-        });
+        backdrop.addEventListener('click', closeSidebar);
 
-        // Close sidebar on resize to desktop
         window.addEventListener('resize', () => {
-            if (window.innerWidth >= 768) {
-                sidebar.classList.remove('-translate-x-full');
+            if (window.innerWidth >= 992) {
+                closeSidebar();
             }
         });
     </script>
+    @stack('scripts')
 </body>
 </html>
