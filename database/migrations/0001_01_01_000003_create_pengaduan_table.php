@@ -18,6 +18,7 @@ return new class extends Migration
             $table->text('isi_laporan');
             $table->string('foto')->nullable();
             $table->enum('status', ['pending', 'diproses', 'selesai'])->default('pending');
+            $table->text('catatan')->nullable();
             $table->timestamp('tanggal_lapor');
             $table->timestamps();
         });

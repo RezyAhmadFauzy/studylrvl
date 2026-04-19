@@ -17,6 +17,7 @@ class Pengaduan extends Model
         'isi_laporan',
         'foto',
         'status',
+        'catatan',
         'tanggal_lapor',
     ];
 

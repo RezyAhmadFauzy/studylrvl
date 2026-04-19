@@ -152,11 +152,40 @@ class PengaduanController extends Controller
     {
         $request->validate([
             'status' => 'required|in:pending,diproses,selesai',
+            'catatan' => 'nullable|string|max:1000',
         ]);
 
-        $pengaduan->update(['status' => $request->status]);
+        $pengaduan->update([
+            'status' => $request->status,
+            'catatan' => $request->catatan ?? $pengaduan->catatan,
+        ]);
 
-        return back()->with('success', 'Status pengaduan berhasil diperbarui');
+        return response()->json([
+            'success' => true,
+            'message' => 'Status pengaduan berhasil diperbarui',
+            'data' => [
+                'id' => $pengaduan->id,
+                'status' => $pengaduan->status,
+            ]
+        ]);
+    }
+
+    /**
+     * Admin: Delete complaint
+     */
+    public function destroy(Pengaduan $pengaduan)
+    {
+        // Delete attached file if exists
+        if ($pengaduan->foto && file_exists(public_path('uploads/pengaduan/' . $pengaduan->foto))) {
+            unlink(public_path('uploads/pengaduan/' . $pengaduan->foto));
+        }
+
+        $pengaduan->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Pengaduan berhasil dihapus'
+        ]);
     }
 
     /**
@@ -171,6 +200,7 @@ class PengaduanController extends Controller
                 'isi_laporan' => $pengaduan->isi_laporan,
                 'foto' => $pengaduan->foto,
                 'status' => $pengaduan->status,
+                'catatan' => $pengaduan->catatan ?? '',
                 'tanggal_lapor' => $pengaduan->tanggal_lapor,
                 'user' => [
                     'id' => $pengaduan->user->id,
